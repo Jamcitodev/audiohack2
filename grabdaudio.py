@@ -6,7 +6,7 @@ from telegram.ext import Updater, CommandHandler
 BOT_TOKEN = '7016184289:AAGdf0Pl6m6uN4JVZf55NdmxAdCwYHc8PDQ'
 
 # ID del chat donde se enviará el audio
-CHAT_ID = '5827778078'
+CHAT_ID = 5827778078
 
 # Ruta del archivo de audio
 AUDIO_FILE = 'audio.mp3'
