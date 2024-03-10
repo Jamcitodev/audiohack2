@@ -13,7 +13,8 @@ AUDIO_FILE = 'audio.mp3'
 
 # Crear instancia del bot
 bot = telebot.TeleBot(BOT_TOKEN)
-
+# Eliminar el webhook
+bot.delete_webhook()
 # Manejador de comando /iniciargrabacion
 @bot.message_handler(commands=['iniciargrabacion'])
 def start_recording(message):
