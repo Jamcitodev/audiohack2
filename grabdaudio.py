@@ -1,6 +1,6 @@
 import os
 import subprocess
-from telegram import Updater, CommandHandler
+import telebot
 
 # Token del bot de Telegram
 BOT_TOKEN = '7016184289:AAGdf0Pl6m6uN4JVZf55NdmxAdCwYHc8PDQ'
@@ -11,45 +11,39 @@ CHAT_ID = 5827778078
 # Ruta del archivo de audio
 AUDIO_FILE = 'audio.mp3'
 
-# Crear instancia del updater
-updater = Updater(token=BOT_TOKEN)
-dispatcher = updater.dispatcher
+# Crear instancia del bot
+bot = telebot.TeleBot(BOT_TOKEN)
 
 # Manejador de comando /iniciargrabacion
-def start_recording(bot, update):
+@bot.message_handler(commands=['iniciargrabacion'])
+def start_recording(message):
     # Verificar si ya hay una grabación en curso
     if os.path.exists(AUDIO_FILE):
-        bot.send_message(chat_id=update.message.chat_id, text='Ya hay una grabación en curso. Utiliza el comando /detenergrabacion para detenerla.')
+        bot.reply_to(message, 'Ya hay una grabación en curso. Utiliza el comando /detenergrabacion para detenerla.')
         return
 
     # Iniciar la grabación de audio en segundo plano
     subprocess.Popen(['termux-microphone-record', '-q', '-e', AUDIO_FILE])
-    bot.send_message(chat_id=update.message.chat_id, text='Grabación de audio iniciada.')
+    bot.reply_to(message, 'Grabación de audio iniciada.')
 
 # Manejador de comando /detenergrabacion
-def stop_recording(bot, update):
+@bot.message_handler(commands=['detenergrabacion'])
+def stop_recording(message):
     # Verificar si hay una grabación en curso
     if not os.path.exists(AUDIO_FILE):
-        bot.send_message(chat_id=update.message.chat_id, text='No hay una grabación en curso. Utiliza el comando /iniciargrabacion para iniciarla.')
+        bot.reply_to(message, 'No hay una grabación en curso. Utiliza el comando /iniciargrabacion para iniciarla.')
         return
 
     # Detener la grabación de audio
     subprocess.Popen(['termux-microphone-record', '--action', 'stop'])
-    bot.send_message(chat_id=update.message.chat_id, text='Grabación de audio detenida.')
+    bot.reply_to(message, 'Grabación de audio detenida.')
 
     # Convertir el archivo de audio a formato MP3
     subprocess.Popen(['ffmpeg', '-i', AUDIO_FILE, AUDIO_FILE.replace('.mp3', '.ogg')])
     os.rename(AUDIO_FILE.replace('.mp3', '.ogg'), AUDIO_FILE)
 
     # Enviar el archivo de audio al chat
-    bot.send_audio(chat_id=CHAT_ID, audio=open(AUDIO_FILE, 'rb'))
-
-# Agregar los manejadores de comandos al dispatcher
-start_handler = CommandHandler('iniciargrabacion', start_recording)
-dispatcher.add_handler(start_handler)
-
-stop_handler = CommandHandler('detenergrabacion', stop_recording)
-dispatcher.add_handler(stop_handler)
+    bot.send_audio(CHAT_ID, open(AUDIO_FILE, 'rb'))
 
 # Iniciar el bot
-updater.start_polling()
+bot.polling()
